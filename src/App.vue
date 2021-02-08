@@ -9,7 +9,7 @@
     </div>
     <div class="divider"></div>
     <div class="options">
-      <h2>Válaszd ki, hogy kiket szeretnél még nézni (max. 3):</h2>
+      <h2>Válaszd ki, hogy kiket szeretnél még nézni:</h2>
       <div
         class="option"
         v-for="streamer in secondaryStreamerOptions"
@@ -57,6 +57,10 @@ export default {
         "https://multistre.am/" +
         this.selectedStreamerIds.join("/");
 
+      if (this.secondaryStreamerIds.length < 4) {
+        return start + "/layout10/";
+      }
+
       if (this.secondaryStreamerIds.length < 3) {
         return start + "/layout6/";
       }
@@ -65,7 +69,7 @@ export default {
         return start + "/layout3/";
       }
 
-      return start + "/layout10/";
+      return start + "/layout14/";
     },
   },
   methods: {
@@ -76,7 +80,7 @@ export default {
         return;
       }
 
-      if (this.secondaryStreamerIds.length > 2) {
+      if (this.secondaryStreamerIds.length > 3) {
         this.secondaryStreamerIds.splice(0, 1);
       }
 
