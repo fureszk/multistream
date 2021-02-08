@@ -14,14 +14,14 @@
         class="option"
         v-for="streamer in secondaryStreamerOptions"
         :key="streamer.id"
-        :class="{ selected: secondaryStreamers.indexOf(streamer.id) > -1 }"
+        :class="{ selected: secondaryStreamerIds.indexOf(streamer.id) > -1 }"
         @click="toggleStreamerSelection(streamer.id)"
       >
         <img :src="streamer.profile_image" />
         <h3>{{ streamer.name }}</h3>
       </div>
     </div>
-    <a :href="buttonUrl" target="_blank" class="button">Multistream indítása</a>
+    <a href="#" class="button" @click.prevent="startMultiStream">Multistream indítása</a>
   </div>
 </template>
 
@@ -33,12 +33,12 @@ export default {
   data: function () {
     return {
       primaryStreamer: null,
-      secondaryStreamers: [],
+      secondaryStreamerIds: [],
       streamers: streamers,
     };
   },
   created() {
-    this.streamers = this.fisherYates(this.streamers);
+    this.streamers = this.shuffle(this.streamers);
     this.primaryStreamer =
       this.streamers.find((s) => s.id === window.location.hash.substr(1)) ||
       streamers[0];
@@ -49,18 +49,19 @@ export default {
         (streamer) => streamer.id !== this.primaryStreamer.id
       );
     },
-    buttonUrl() {
+    selectedStreamerIds() {
+      return [this.primaryStreamer.id, ...this.secondaryStreamerIds];
+    },
+    multiStreamUrl() {
       const start =
         "https://multistre.am/" +
-        this.primaryStreamer.id +
-        "/" +
-        this.secondaryStreamers.join("/");
+        this.selectedStreamerIds.join("/");
 
-      if (this.secondaryStreamers.length < 3) {
+      if (this.secondaryStreamerIds.length < 3) {
         return start + "/layout6/";
       }
 
-      if (this.secondaryStreamers.length < 2) {
+      if (this.secondaryStreamerIds.length < 2) {
         return start + "/layout3/";
       }
 
@@ -69,27 +70,20 @@ export default {
   },
   methods: {
     toggleStreamerSelection(streamerId) {
-      const index = this.secondaryStreamers.indexOf(streamerId);
+      const index = this.secondaryStreamerIds.indexOf(streamerId);
       if (index > -1) {
-        this.secondaryStreamers.splice(index, 1);
+        this.secondaryStreamerIds.splice(index, 1);
         return;
       }
 
-      if (this.secondaryStreamers.length > 2) {
-        this.secondaryStreamers.splice(0, 1);
+      if (this.secondaryStreamerIds.length > 2) {
+        this.secondaryStreamerIds.splice(0, 1);
       }
 
-      this.secondaryStreamers.push(streamerId);
+      this.secondaryStreamerIds.push(streamerId);
     },
-    changePrimaryStreamer(streamerId) {
-      this.primaryStreamer = this.streamers.find((s) => s.id === streamerId);
-      const index = this.secondaryStreamers.indexOf(streamerId);
-      if (index > -1) {
-        this.secondaryStreamers.splice(index, 1);
-      }
-    },
-    fisherYates(array) {
-      var count = array.length,
+    shuffle(array) {
+      let count = array.length,
         randomnumber,
         temp;
       while (count) {
@@ -100,6 +94,14 @@ export default {
       }
 
       return array;
+    },
+    startMultiStream() {
+      window.gtag('event', 'start_multistream', {
+          'event_category': 'Click',
+          'event_label': this.selectedStreamerIds.join("|"),
+      });
+
+      location.href = this.multiStreamUrl;
     },
   },
 };
